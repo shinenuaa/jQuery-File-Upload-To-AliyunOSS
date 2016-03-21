@@ -1,4 +1,5 @@
 <!DOCTYPE HTML>
+
 <!--
 /*
  * jQuery File Upload Plugin Basic Demo
@@ -11,12 +12,13 @@
  * http://www.opensource.org/licenses/MIT
  */
 -->
-<html lang="en">
+<html>
 <head>
 <!-- Force latest IE rendering engine or ChromeFrame if installed -->
 <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"><![endif]-->
-<meta charset="utf-8">
-<title>jQuery File Upload Demo - Basic version</title>
+<!-- <meta charset="utf-8"> -->
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" >
+<title>jQuery File Upload Demo To AliyunOSS - Basic version</title>
 <meta name="description" content="File Upload widget with multiple file selection, drag&amp;drop support and progress bar for jQuery. Supports cross-domain, chunked and resumable file uploads. Works with any server-side platform (PHP, Python, Ruby on Rails, Java, Node.js, Go etc.) that supports standard HTML form file uploads.">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- Bootstrap styles -->
@@ -48,7 +50,7 @@
     </div>
 </div>
 <div class="container">
-    <h1>jQuery File Upload Demo</h1>
+    <h1>jQuery File Upload Demo To AliyunOSS</h1>
     <h2 class="lead">Basic version</h2>
     <ul class="nav nav-tabs">
         <li class="active"><a href="basic.html">Basic</a></li>
@@ -59,17 +61,19 @@
     </ul>
     <br>
     <blockquote>
-        <p>File Upload widget with multiple file selection, drag&amp;drop support and progress bar for jQuery.<br>
-        Supports cross-domain, chunked and resumable file uploads.<br>
-        Works with any server-side platform (PHP, Python, Ruby on Rails, Java, Node.js, Go etc.) that supports standard HTML form file uploads.</p>
+        <p>
+        多文件选择文件上传控件，拖放jQuery支持和进度条。<br/>
+        支持跨域、分块和可恢复的文件上传。<br/>
+        任何服务器端平台（PHP，Python，Ruby on Rails，java，js，Go等），支持标准的HTML表单上传文件。
+        </p>
     </blockquote>
     <br>
     <!-- The fileinput-button span is used to style the file input field as button -->
     <span class="btn btn-success fileinput-button">
         <i class="glyphicon glyphicon-plus"></i>
-        <span>Select files...</span>
         <!-- The file input field used as target for the file upload widget -->
-        <input id="fileupload" type="file" name="files[]" multiple>
+        <span>选择文件...</span>
+        <input id="fileupload" type="file" name="file" multiple>
     </span>
     <br>
     <br>
@@ -106,16 +110,76 @@
 <!-- Bootstrap JS is not required, but included for the responsive demo navigation -->
 <script src="//netdna.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 <script>
+
+function send_request()
+{
+    var xmlhttp = null;
+    if (window.XMLHttpRequest)
+    {
+        xmlhttp=new XMLHttpRequest();
+    }
+    else if (window.ActiveXObject)
+    {
+        xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+    }
+
+    if (xmlhttp!=null)
+    {
+        phpUrl = './oss_token_server/get.php'
+        xmlhttp.open( "GET", phpUrl, false );
+        xmlhttp.send( null );
+        return xmlhttp.responseText
+    }
+    else
+    {
+        alert("Your browser does not support XMLHTTP.");
+    }
+};
+
+function get_upload_token()
+{
+    body = send_request()
+    var obj = eval ("(" + body + ")");
+    return obj;
+}
+
 /*jslint unparam: true */
 /*global window, $ */
 $(function () {
     'use strict';
     // Change this to the location of your server-side upload handler:
-    var url = window.location.hostname === 'blueimp.github.io' ?
-                '//jquery-file-upload.appspot.com/' : 'server/php/';
+    var url = 'http://post-test.oss.aliyuncs.com';
     $('#fileupload').fileupload({
         url: url,
-        dataType: 'json',
+        maxFileSize: 409600,
+        formData: function(form){
+            var data = form.serializeArray();
+            var token = get_upload_token();
+            var dir = token['dir'] 
+            data.push({name: 'key', value: dir + '${filename}'});
+            data.push({name: 'name', value: '${name}'});
+            data.push({name: 'policy', value: token['policy']});
+            data.push({name: 'OSSAccessKeyId', value: token['accessid']});
+            data.push({name: 'signature', value: token['signature']});
+            data.push({name: 'success_action_status', value: '200'});
+            return data;
+        },
+        add: function(e, data) { // 选了文件就可以点扫描
+            var uploadFile = data.files[0];
+            if (uploadFile.size > 400000) { // 400k
+                alert('larger than 400k') ;
+            }
+            else {
+                alert(uploadFile.name);
+                data.submit();
+            }
+            /*
+            if (goUpload == true) {
+                $("#scan").html("正在检测");
+                data.submit();
+            }
+            */
+        },
         done: function (e, data) {
             $.each(data.result.files, function (index, file) {
                 $('<p/>').text(file.name).appendTo('#files');

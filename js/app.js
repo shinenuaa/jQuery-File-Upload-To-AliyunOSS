@@ -12,11 +12,45 @@
 /* jshint nomen:false */
 /* global window, angular */
 
+function send_request()
+{
+    var xmlhttp = null;
+    if (window.XMLHttpRequest)
+    {
+        xmlhttp=new XMLHttpRequest();
+    }
+    else if (window.ActiveXObject)
+    {
+        xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+    }
+
+    if (xmlhttp!=null)
+    {
+        phpUrl = './oss_token_server/get.php'
+        xmlhttp.open( "GET", phpUrl, false );
+        xmlhttp.send( null );
+        return xmlhttp.responseText
+    }
+    else
+    {
+        alert("Your browser does not support XMLHTTP.");
+    }
+};
+
+function get_upload_token()
+{
+    body = send_request()
+    var obj = eval ("(" + body + ")");
+    return obj;
+}
+
 (function () {
     'use strict';
 
-    var isOnGitHub = window.location.hostname === 'blueimp.github.io',
-        url = isOnGitHub ? '//jquery-file-upload.appspot.com/' : 'server/php/';
+    var isOnGitHub = window.location.hostname === 'blueimp.github.io';
+    //url = isOnGitHub ? '//jquery-file-upload.appspot.com/' : 'server/php/';
+    var isOnGitHub  = false;
+    var url = "http://post-test.oss-cn-hangzhou.aliyuncs.com";
 
     angular.module('demo', [
         'blueimp.fileupload'
@@ -48,7 +82,21 @@
             '$scope', '$http', '$filter', '$window',
             function ($scope, $http) {
                 $scope.options = {
-                    url: url
+                    url: url,
+                    acceptFileTypes: /(\.|\/)(gif|jpe?g|png)$/i,
+                    maxFileSize: 999000,
+                    formData: function(form){
+                        var data = form.serializeArray();
+                        var token = get_upload_token();
+                        var dir = token['dir'] 
+                        data.push({name: 'key', value: dir + '${filename}'});
+                        data.push({name: 'name', value: '${name}'});
+                        data.push({name: 'policy', value: token['policy']});
+                        data.push({name: 'OSSAccessKeyId', value: token['accessid']});
+                        data.push({name: 'signature', value: token['signature']});
+                        data.push({name: 'success_action_status', value: '200'});
+                        return data;
+                    }
                 };
                 if (!isOnGitHub) {
                     $scope.loadingFiles = true;
