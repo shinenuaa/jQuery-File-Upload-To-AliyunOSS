@@ -1,7 +1,8 @@
-# jQuery File Upload Plugin
+# JQuery文件直传到阿里云存储OSS
 
-## Demo
-[Demo File Upload](https://blueimp.github.io/jQuery-File-Upload/)
+## 该案例基于：https://blueimp.github.io/jQuery-File-Upload/ 进行修改
+## 示例 
+[文件上传事例](https://blueimp.github.io/jQuery-File-Upload/)
 
 ## Description
 File Upload widget with multiple file selection, drag&amp;drop support, progress bars, validation and preview images, audio and video for jQuery.  

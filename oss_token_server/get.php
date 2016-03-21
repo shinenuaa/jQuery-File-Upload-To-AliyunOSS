@@ -8,9 +8,9 @@
         return $expiration."Z";
     }
 
-    $id= '';
-    $key= '';
-    $host = 'http://post-test.oss-cn-hangzhou.aliyuncs.com';
+    $id= '';  //输入Aliyun AccessKeyId
+    $key= ''; //输入Aliyun AccessKeySecret
+    $host = 'http://post-test.oss-cn-hangzhou.aliyuncs.com'; //输入host: 文件要上传的bucket + 和该bucket对应的endpoint
 
     $now = time();
     $expire = 30; //设置该policy超时时间是10s. 即这个policy过了这个有效时间，将不能访问
